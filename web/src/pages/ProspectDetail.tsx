@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProspectStatusSchema } from "@repo/contracts";
-import type { Prospect, ProspectStatus } from "@repo/contracts";
+import type { Prospect, ProspectStatus, Task } from "@repo/contracts";
 
 export function ProspectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +12,13 @@ export function ProspectDetail() {
     queryKey: ["prospect", id],
     queryFn: (): Promise<Prospect> =>
       fetch(`/api/prospects/${id}`).then((res) => res.json() as Promise<Prospect>),
+    enabled: !!id,
+  });
+
+  const { data: tasks = [] as Task[] } = useQuery<Task[]>({
+    queryKey: ["tasks", id],
+    queryFn: (): Promise<Task[]> =>
+      fetch(`/api/tasks?prospectId=${id}`).then((res) => res.json() as Promise<Task[]>),
     enabled: !!id,
   });
 
@@ -83,6 +90,28 @@ export function ProspectDetail() {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">Tasks</h2>
+        {tasks.length === 0 ? (
+          <p className="text-sm text-slate-400">No tasks yet.</p>
+        ) : (
+          <ul className="space-y-2">
+            {tasks.map((task) => (
+              <li key={task.id} className="flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className={`text-sm ${task.state === "done" ? "text-slate-400 line-through" : "text-slate-800"}`}>
+                    {task.title}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Due {new Date(task.dueDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
