@@ -47,6 +47,8 @@ export function ProspectDetail() {
       }).then((res) => res.json() as Promise<Prospect>),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["prospect", id] });
+      void queryClient.invalidateQueries({ queryKey: ["tasks", id] });
+      void queryClient.invalidateQueries({ queryKey: ["activity-events", id] });
     },
   });
 
