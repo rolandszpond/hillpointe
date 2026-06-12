@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProspectStatusSchema } from "@repo/contracts";
-import type { Prospect, ProspectStatus, Task } from "@repo/contracts";
+import type { Prospect, ProspectStatus, Task, ActivityEvent } from "@repo/contracts";
 
 export function ProspectDetail() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +19,13 @@ export function ProspectDetail() {
     queryKey: ["tasks", id],
     queryFn: (): Promise<Task[]> =>
       fetch(`/api/tasks?prospectId=${id}`).then((res) => res.json() as Promise<Task[]>),
+    enabled: !!id,
+  });
+
+  const { data: activityEvents = [] as ActivityEvent[] } = useQuery<ActivityEvent[]>({
+    queryKey: ["activity-events", id],
+    queryFn: (): Promise<ActivityEvent[]> =>
+      fetch(`/api/activity-events?prospectId=${id}`).then((res) => res.json() as Promise<ActivityEvent[]>),
     enabled: !!id,
   });
 
@@ -92,7 +99,7 @@ export function ProspectDetail() {
         </select>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm my-6">
         <h2 className="mb-3 text-sm font-semibold text-slate-700">Tasks</h2>
         {tasks.length === 0 ? (
           <p className="text-sm text-slate-400">No tasks yet.</p>
@@ -111,6 +118,24 @@ export function ProspectDetail() {
               </li>
             ))}
           </ul>
+        )}
+      </div>
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700">Activity</h2>
+        {activityEvents.length === 0 ? (
+          <p className="text-sm text-slate-400">No activity yet.</p>
+        ) : (
+          <ol className="relative border-l border-slate-200 space-y-4 ml-2">
+            {activityEvents.map((event) => (
+              <li key={event.id} className="ml-4">
+                <div className="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full border border-white bg-slate-400" />
+                <p className="text-sm text-slate-800">{event.summary}</p>
+                <p className="text-xs text-slate-400">
+                  {new Date(event.timestamp).toLocaleString()}
+                </p>
+              </li>
+            ))}
+          </ol>
         )}
       </div>
     </div>
