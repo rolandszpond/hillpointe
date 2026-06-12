@@ -29,6 +29,15 @@ export function ProspectDetail() {
     enabled: !!id,
   });
 
+  const { mutate: markDone } = useMutation({
+    mutationFn: (taskId: string) =>
+      fetch(`/api/tasks/${taskId}/done`, { method: "PATCH" }).then((res) => res.json()),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["tasks", id] });
+      void queryClient.invalidateQueries({ queryKey: ["activity-events", id] });
+    },
+  });
+
   const { mutate: updateStatus, isPending: isUpdating } = useMutation({
     mutationFn: (status: ProspectStatus) =>
       fetch(`/api/prospects/${id!}`, {
@@ -115,6 +124,14 @@ export function ProspectDetail() {
                     Due {new Date(task.dueDate).toLocaleDateString()}
                   </p>
                 </div>
+                {task.state === "open" && (
+                  <button
+                    onClick={() => markDone(task.id)}
+                    className="shrink-0 rounded border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
+                  >
+                    Mark done
+                  </button>
+                )}
               </li>
             ))}
           </ul>

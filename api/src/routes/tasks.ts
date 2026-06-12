@@ -16,9 +16,15 @@ tasksRouter.patch("/:id/done", async (req, res) => {
   const task = await db.task.findUnique({ where: { id: req.params.id } });
   if (!task) return res.status(404).json({ error: "Task not found" });
 
-  const updated = await db.task.update({
-    where: { id: req.params.id },
-    data: { state: "done" },
-  });
+  const [updated] = await db.$transaction([
+    db.task.update({ where: { id: req.params.id }, data: { state: "done" } }),
+    db.activityEvent.create({
+      data: {
+        type: "task_closed",
+        summary: `Task completed: ${task.title}`,
+        prospectId: task.prospectId,
+      },
+    }),
+  ]);
   res.json(updated);
 });
