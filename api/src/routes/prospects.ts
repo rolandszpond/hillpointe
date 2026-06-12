@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { CreateProspectSchema, UpdateProspectSchema } from "@repo/contracts";
 import { db } from "../db.js";
+import { runRules } from "../rules/engine.js";
 
 export const prospectsRouter = Router();
 
@@ -25,10 +26,19 @@ prospectsRouter.post("/", async (req, res) => {
 prospectsRouter.patch("/:id", async (req, res) => {
   const parsed = UpdateProspectSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+  const existing = await db.prospect.findUnique({ where: { id: req.params.id } });
+  if (!existing) return res.status(404).json({ error: "Prospect not found" });
+
   const prospect = await db.prospect.update({
     where: { id: req.params.id },
     data: parsed.data,
   });
+
+  if (parsed.data.status && parsed.data.status !== existing.status) {
+    await runRules({ prospect, db }, parsed.data.status);
+  }
+
   res.json(prospect);
 });
 
