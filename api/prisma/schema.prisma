@@ -16,12 +16,35 @@ model Unit {
 }
 
 model Prospect {
-  id             String   @id @default(cuid())
+  id             String          @id @default(cuid())
   name           String
-  email          String   @unique
+  email          String          @unique
   phone          String?
-  status         String   @default("new")
+  status         String          @default("new")
   assignee       String?
   assignedUnitId String?
-  unit           Unit?    @relation(fields: [assignedUnitId], references: [id])
+  unit           Unit?           @relation(fields: [assignedUnitId], references: [id])
+  tasks          Task[]
+  activityEvents ActivityEvent[]
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  dueDate     DateTime
+  assignee    String?
+  state       String   @default("open")
+  prospectId  String
+  prospect    Prospect @relation(fields: [prospectId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model ActivityEvent {
+  id         String   @id @default(cuid())
+  type       String
+  summary    String
+  timestamp  DateTime @default(now())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id])
+  unitId     String?
 }
