@@ -33,13 +33,19 @@ const RULES: Rule[] = [
     },
   },
   {
-    // Tour time comes from the Tour record (Tier 2); due date is +1 day placeholder until then
     toStatus: "tour_scheduled",
     apply: async ({ prospect, db }) => {
+      const tour = await db.tour.findFirst({
+        where: { prospectId: prospect.id },
+        orderBy: { scheduledTime: "desc" },
+      });
+      const dueDate = tour
+        ? new Date(tour.scheduledTime.getTime() - 24 * 60 * 60 * 1000)
+        : addDays(new Date(), 1);
       await db.task.create({
         data: {
           title: `Confirm tour 24h prior for ${prospect.name}`,
-          dueDate: addDays(new Date(), 1),
+          dueDate,
           prospectId: prospect.id,
           assignee: prospect.assignee,
           state: "open",

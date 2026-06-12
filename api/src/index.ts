@@ -4,6 +4,7 @@ import { unitsRouter } from "./routes/units.js";
 import { prospectsRouter } from "./routes/prospects.js";
 import { tasksRouter } from "./routes/tasks.js";
 import { activityEventsRouter } from "./routes/activityEvents.js";
+import { toursRouter } from "./routes/tours.js";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use("/api/units", unitsRouter);
 app.use("/api/prospects", prospectsRouter);
 app.use("/api/tasks", tasksRouter);
 app.use("/api/activity-events", activityEventsRouter);
+app.use("/api/tours", toursRouter);
 
 app.listen(3001, () => {
   console.log("API running on http://localhost:3001");
