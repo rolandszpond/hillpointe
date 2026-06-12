@@ -13,6 +13,7 @@ model Unit {
   name       String
   status     String      @default("available")
   prospects  Prospect[]
+  tours      Tour[]
 }
 
 model Prospect {
@@ -26,6 +27,19 @@ model Prospect {
   unit           Unit?           @relation(fields: [assignedUnitId], references: [id])
   tasks          Task[]
   activityEvents ActivityEvent[]
+  tours          Tour[]
+}
+
+model Tour {
+  id            String    @id @default(cuid())
+  prospectId    String
+  prospect      Prospect  @relation(fields: [prospectId], references: [id])
+  unitId        String
+  unit          Unit      @relation(fields: [unitId], references: [id])
+  scheduledTime DateTime
+  outcome       String?
+
+  @@unique([unitId, scheduledTime])
 }
 
 model Task {
