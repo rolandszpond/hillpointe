@@ -24,6 +24,7 @@ export function ProspectList() {
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-slate-600">Name</th>
+              <th className="px-4 py-3 text-left font-medium text-slate-600">Status</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -34,6 +35,9 @@ export function ProspectList() {
                 className="cursor-pointer hover:bg-slate-50"
               >
                 <td className="px-4 py-3 font-medium text-slate-900">{p.name}</td>
+                <td className="px-4 py-3 font-medium text-slate-900">
+                  <div className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-700">{p.status.replace("_", " ").toUpperCase()}</div>
+                </td>
               </tr>
             ))}
           </tbody>
