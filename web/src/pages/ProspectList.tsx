@@ -11,6 +11,8 @@ export function ProspectList() {
   const [filterStatus, setFilterStatus] = useState("");
   const [filterUnit, setFilterUnit] = useState("");
   const [filterAssignee, setFilterAssignee] = useState("");
+  const [sortKey, setSortKey] = useState<"name" | "status" | "unit" | "assignee" | "tour">("name");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const { isPending, data: prospects } = useQuery<Prospect[]>({
     queryKey: ["prospectsData"],
@@ -38,13 +40,27 @@ export function ProspectList() {
     new Set((prospects ?? []).map((p) => p.assignee).filter((a): a is string => !!a))
   );
 
-  const filtered = (prospects ?? []).filter((p) => {
-    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (filterStatus && p.status !== filterStatus) return false;
-    if (filterUnit && p.assignedUnitId !== filterUnit) return false;
-    if (filterAssignee && p.assignee !== filterAssignee) return false;
-    return true;
-  });
+  const tourDate = (prospectId: string): string =>
+    tours.find((t) => t.prospectId === prospectId && t.outcome === null)?.scheduledTime ?? "";
+
+  const filtered = (prospects ?? [])
+    .filter((p) => {
+      if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (filterStatus && p.status !== filterStatus) return false;
+      if (filterUnit && p.assignedUnitId !== filterUnit) return false;
+      if (filterAssignee && p.assignee !== filterAssignee) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      let aVal = "";
+      let bVal = "";
+      if (sortKey === "name")     { aVal = a.name; bVal = b.name; }
+      if (sortKey === "status")   { aVal = a.status; bVal = b.status; }
+      if (sortKey === "unit")     { aVal = a.assignedUnitId ? unitName(a.assignedUnitId) : ""; bVal = b.assignedUnitId ? unitName(b.assignedUnitId) : ""; }
+      if (sortKey === "assignee") { aVal = a.assignee ?? ""; bVal = b.assignee ?? ""; }
+      if (sortKey === "tour")     { aVal = tourDate(a.id); bVal = tourDate(b.id); }
+      return sortDir === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+    });
 
   return (
     <div className="p-6">
@@ -107,11 +123,21 @@ export function ProspectList() {
         <table className="w-full table-fixed text-sm">
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">Name</th>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">Status</th>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">Unit</th>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">Assignee</th>
-              <th className="px-4 py-3 text-left font-medium text-slate-600">Tour</th>
+              {(["name", "status", "unit", "assignee", "tour"] as const).map((col) => (
+                <th
+                  key={col}
+                  onClick={() => {
+                    if (sortKey === col) setSortDir((d) => d === "asc" ? "desc" : "asc");
+                    else { setSortKey(col); setSortDir("asc"); }
+                  }}
+                  className="cursor-pointer select-none px-4 py-3 text-left font-medium text-slate-600 hover:text-slate-900"
+                >
+                  {col.charAt(0).toUpperCase() + col.slice(1)}
+                  {sortKey === col && (
+                    <span className="ml-1 text-slate-400">{sortDir === "asc" ? "↑" : "↓"}</span>
+                  )}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
