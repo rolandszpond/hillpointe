@@ -20,7 +20,17 @@ Time spent: ~1 hr
 
 Added a `Tour` model and contracts schema. Built schedule, reschedule, and outcome endpoints. Recording a tour outcome maps to a prospect status change (`toured`, `no_show` → `lost`, `cancelled` → `contacted`), which fires the Tier 1 rule engine the same way a manual status change does. The prospect detail page has a tours section where you can schedule a tour, record an outcome, or reschedule inline. Double-booking is prevented with a unique constraint on `(unitId, scheduledTime)` at the database level.
 
+- Currently, there's no tour length, so double booking the unit only checks by the minute, I would add a length for tours for maybe 60 mins to check against to prevent double bookings.
+
 Time spent: ~1 hr
+
+---
+
+## Tier 3 - Find & Filter
+
+- All filtering and searching is done on the frontend for this project. If the list was bigger, I would switch to adding filters to the endpoints and return the results and add pagination.
+
+Time spect: ~30 mins
 
 ## AI tools
 
@@ -28,6 +38,5 @@ Used Claude Code throughout, working one step at a time and reviewing each piece
 
 ## What I would do next
 
-- Currently, there's no tour length, so double booking the unit only checks by the minute, I would add a length for tours for maybe 60 mins to check against to prevent double bookings.
 - I would add transactions to the database calls instead of running them parallel incase one requests fails, the whole thing would rollback instead of having incomplete or mismatched data.
 - I would create endpoints that consolidate queries and data needed for each page instead of running multiple queries together to help with database connections.
