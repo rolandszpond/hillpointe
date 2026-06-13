@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { ProspectStatusSchema } from "@repo/contracts";
 import type { Prospect, Unit, Tour } from "@repo/contracts";
 
 export function ProspectList() {
   const navigate = useNavigate();
+
+  const [filterStatus, setFilterStatus] = useState("");
+  const [filterUnit, setFilterUnit] = useState("");
+  const [filterAssignee, setFilterAssignee] = useState("");
 
   const { isPending, data: prospects } = useQuery<Prospect[]>({
     queryKey: ["prospectsData"],
@@ -27,14 +33,69 @@ export function ProspectList() {
 
   const unitName = (unitId: string) => units.find((u) => u.id === unitId)?.name ?? "—";
 
+  const assignees = Array.from(
+    new Set((prospects ?? []).map((p) => p.assignee).filter((a): a is string => !!a))
+  );
+
+  const filtered = (prospects ?? []).filter((p) => {
+    if (filterStatus && p.status !== filterStatus) return false;
+    if (filterUnit && p.assignedUnitId !== filterUnit) return false;
+    if (filterAssignee && p.assignee !== filterAssignee) return false;
+    return true;
+  });
+
   return (
     <div className="p-6">
-      <div className="mb-6">
+      <div className="mb-4">
         <h1 className="text-2xl font-semibold text-slate-900">Prospects</h1>
       </div>
 
+      <div className="mb-4 flex flex-wrap gap-2">
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400"
+        >
+          <option value="">All statuses</option>
+          {ProspectStatusSchema.options.map((s) => (
+            <option key={s} value={s}>{s.replace(/_/g, " ").toUpperCase()}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterUnit}
+          onChange={(e) => setFilterUnit(e.target.value)}
+          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400"
+        >
+          <option value="">All units</option>
+          {units.map((u) => (
+            <option key={u.id} value={u.id}>{u.name}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterAssignee}
+          onChange={(e) => setFilterAssignee(e.target.value)}
+          className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400"
+        >
+          <option value="">All assignees</option>
+          {assignees.map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+
+        {(filterStatus || filterUnit || filterAssignee) && (
+          <button
+            onClick={() => { setFilterStatus(""); setFilterUnit(""); setFilterAssignee(""); }}
+            className="text-sm text-slate-400 hover:text-slate-600"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <table className="w-full text-sm table-fixed">
+        <table className="w-full table-fixed text-sm">
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-slate-600">Name</th>
@@ -45,7 +106,12 @@ export function ProspectList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {prospects?.map((p) => (
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-slate-400">No prospects match the filters.</td>
+              </tr>
+            )}
+            {filtered.map((p) => (
               <tr
                 key={p.id}
                 onClick={() => void navigate(`/prospects/${p.id}`)}
