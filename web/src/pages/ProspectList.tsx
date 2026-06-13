@@ -7,6 +7,7 @@ import type { Prospect, Unit, Tour } from "@repo/contracts";
 export function ProspectList() {
   const navigate = useNavigate();
 
+  const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [filterUnit, setFilterUnit] = useState("");
   const [filterAssignee, setFilterAssignee] = useState("");
@@ -38,6 +39,7 @@ export function ProspectList() {
   );
 
   const filtered = (prospects ?? []).filter((p) => {
+    if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (filterStatus && p.status !== filterStatus) return false;
     if (filterUnit && p.assignedUnitId !== filterUnit) return false;
     if (filterAssignee && p.assignee !== filterAssignee) return false;
@@ -51,6 +53,13 @@ export function ProspectList() {
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
+        <input
+          type="text"
+          placeholder="Search by name"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="rounded border border-slate-300 px-3 py-1.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400"
+        />
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -84,9 +93,9 @@ export function ProspectList() {
           ))}
         </select>
 
-        {(filterStatus || filterUnit || filterAssignee) && (
+        {(search || filterStatus || filterUnit || filterAssignee) && (
           <button
-            onClick={() => { setFilterStatus(""); setFilterUnit(""); setFilterAssignee(""); }}
+            onClick={() => { setSearch(""); setFilterStatus(""); setFilterUnit(""); setFilterAssignee(""); }}
             className="text-sm text-slate-400 hover:text-slate-600"
           >
             Clear
